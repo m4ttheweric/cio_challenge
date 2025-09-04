@@ -1,0 +1,14 @@
+.DS_Store
+frontend/node_modules
+
+# add ignore patterns for basic Typescript React project in ./frontend where dist is the build output folder
+frontend/dist
+frontend/build
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/.cache
+frontend/.next
+

@@ -23,7 +23,16 @@ func jwtMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		tokenString := strings.Split(authorizationHeader, "Bearer ")[1]
+		var tokenString string
+		if strings.HasPrefix(authorizationHeader, "Bearer ") {
+			tokenString = strings.TrimPrefix(authorizationHeader, "Bearer ")
+		} else if strings.HasPrefix(authorizationHeader, "bearer ") {
+			tokenString = strings.TrimPrefix(authorizationHeader, "bearer ")
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
 
 		// Parse the token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -53,11 +62,38 @@ func jwtMiddleware() gin.HandlerFunc {
 	}
 }
 
-// Create a signed JWT token with the given id and email
-func createJWT(email string) (string, error) {
+// Create a signed JWT token with the given user_id and email
+func createJWT(email string, userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
+		"user_id": userID,
 	})
 
 	return token.SignedString([]byte(secretKey))
+}
+
+// authRequired ensures a valid JWT with a user_id is present
+func authRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		v, exists := c.Get("claims")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		claims, ok := v.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		uidRaw, ok := claims["user_id"]
+		if !ok || uidRaw == nil || uidRaw == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		c.Set("user_id", uidRaw)
+		c.Next()
+	}
 }
