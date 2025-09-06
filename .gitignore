@@ -11,4 +11,5 @@ frontend/.env.test.local
 frontend/.env.production.local
 frontend/.cache
 frontend/.next
+frontend/.eslintcache
 
