@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -222,8 +223,11 @@ func getPreferences(db *sqlx.DB, userID string) (Preferences, error) {
 	var p Preferences
 	err := db.Get(&p, `SELECT user_id, allow_email, allow_sms, allow_push FROM user_preferences WHERE user_id = ?`, userID)
 	if err != nil {
-		// default if none
-		return Preferences{UserID: userID, AllowEmail: true, AllowSMS: true, AllowPush: true}, nil
+		if err == sql.ErrNoRows {
+			// default if none
+			return Preferences{UserID: userID, AllowEmail: true, AllowSMS: true, AllowPush: true}, nil
+		}
+		return Preferences{}, err
 	}
 	return p, nil
 }

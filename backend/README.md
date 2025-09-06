@@ -5,7 +5,7 @@ This implementation provides a small API with JWT auth, in-memory SQLite, and CS
 Implemented endpoints:
 
 -  POST /login: exchange an email for a JWT containing email and user_id
--  GET /notifications: list user notifications filtered by their preferences
+-  GET /notifications: returns user notifications filtered by their preferences and as well as user preferences
 -  POST /preferences: upsert partial user notification preferences (email/sms/push)
 
 ## Setup and run
@@ -36,7 +36,7 @@ http --form POST :8080/login email=first@customer.io
 # set preferences
 http POST :8080/preferences Authorization:"Bearer TOKEN" email:=true sms:=false push:=false
 
-# fetch notifications
+# fetch notifications + preferences
 http GET :8080/notifications Authorization:"Bearer TOKEN"
 ```
 

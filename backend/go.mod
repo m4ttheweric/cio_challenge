@@ -1,4 +1,4 @@
-module github.com/customerio/fullstack-backend-homework
+module github.com/customerio/backend
 
 go 1.22.3
 

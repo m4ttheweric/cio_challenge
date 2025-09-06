@@ -2,13 +2,22 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const secretKey = "MY_SUPER_SECRET_KEY"
+// getJWTSecret reads the JWT secret from the environment.
+// For local dev, it falls back to an insecure default.
+func getJWTSecret() []byte {
+	if s := os.Getenv("JWT_SECRET"); s != "" {
+		return []byte(s)
+	}
+	return []byte("MY_SUPER_SECRET_KEY")
+}
 
 // Middleware responsible for parsing the JWT token if present on the Authorization header.
 // Once parsed, it injects the claims into the Gin context.
@@ -34,14 +43,15 @@ func jwtMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Parse the token
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	// Parse the token with standard claims validation and small leeway
+	claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, http.ErrAbortHandler
 			}
 
-			return []byte(secretKey), nil
-		})
+			return getJWTSecret(), nil
+	}, jwt.WithLeeway(1*time.Minute))
 
 		// Check if the token is valid
 		if err != nil || !token.Valid {
@@ -64,12 +74,16 @@ func jwtMiddleware() gin.HandlerFunc {
 
 // Create a signed JWT token with the given user_id and email
 func createJWT(email string, userID string) (string, error) {
+	// Basic token hygiene: include iat and short exp (e.g., 24h)
+	now := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": email,
+		"email":   email,
 		"user_id": userID,
+		"iat":     now.Unix(),
+		"exp":     now.Add(24 * time.Hour).Unix(),
 	})
 
-	return token.SignedString([]byte(secretKey))
+	return token.SignedString(getJWTSecret())
 }
 
 // authRequired ensures a valid JWT with a user_id is present

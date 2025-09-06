@@ -51,7 +51,7 @@ func TestLoginAndPreferencesAndNotifications(t *testing.T) {
         t.Fatalf("prefs status: %d", resp2.StatusCode)
     }
 
-    // fetch notifications and ensure all are EMAIL type
+    // fetch notifications and ensure all are EMAIL type, response shape now includes preferences
     req3, _ := http.NewRequest(http.MethodGet, srv.URL+"/notifications", nil)
     req3.Header.Set("Authorization", "Bearer "+tok.Token)
     resp3, err := http.DefaultClient.Do(req3)
@@ -61,16 +61,29 @@ func TestLoginAndPreferencesAndNotifications(t *testing.T) {
     if resp3.StatusCode != http.StatusOK {
         t.Fatalf("notifications status: %d", resp3.StatusCode)
     }
-    var notifs []map[string]any
-    if err := json.NewDecoder(resp3.Body).Decode(&notifs); err != nil {
+    var respBody struct {
+        Notifications []struct {
+            Type string `json:"type"`
+        } `json:"notifications"`
+        Preferences struct {
+            Email bool `json:"email"`
+            SMS   bool `json:"sms"`
+            Push  bool `json:"push"`
+        } `json:"preferences"`
+    }
+    if err := json.NewDecoder(resp3.Body).Decode(&respBody); err != nil {
         t.Fatalf("decode notifications: %v", err)
     }
-    if len(notifs) == 0 {
+    if len(respBody.Notifications) == 0 {
         t.Fatalf("expected some notifications")
     }
-    for _, n := range notifs {
-        if n["type"] != "EMAIL" {
-            t.Fatalf("expected only EMAIL type, got %v", n["type"])
+    for _, n := range respBody.Notifications {
+        if n.Type != "EMAIL" {
+            t.Fatalf("expected only EMAIL type, got %v", n.Type)
         }
+    }
+    // ensure preferences echoed back match what we set
+    if !respBody.Preferences.Email || respBody.Preferences.SMS || respBody.Preferences.Push {
+        t.Fatalf("unexpected preferences in response: %+v", respBody.Preferences)
     }
 }

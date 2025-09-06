@@ -1,32 +1,42 @@
-import { AppContextProvider } from '@/AppContext';
-import { ModalsProvider } from '@mantine/modals';
+import { Center, Loader } from '@mantine/core';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { AppLayout } from './layouts/AppLayout';
-import { LoginPage } from './pages/Login.page';
-import { NotificationsPage } from './pages/Notifications.page';
 
 const router = createBrowserRouter([
    {
       path: '/',
-      element: (
-         <AppContextProvider>
-            <ModalsProvider
-               modalProps={{ size: 'lg', centered: true, padding: 'lg' }}
-            >
-               <AppLayout />
-            </ModalsProvider>
-         </AppContextProvider>
-      ),
+      // The layout route is lazy-loaded via a route module
+      lazy: async () => {
+         const mod = await import('@/layouts/AppLayoutRoute');
+         return { Component: mod.Component };
+      },
       children: [
          {
             index: true,
-            element: <NotificationsPage />
+            lazy: async () => {
+               const mod = await import('@/pages/Notifications.page');
+               return { Component: mod.Component };
+            }
          },
-         { path: 'login', element: <LoginPage /> }
+         {
+            path: 'login',
+            lazy: async () => {
+               const mod = await import('@/pages/Login.page');
+               return { Component: mod.Component };
+            }
+         }
       ]
    }
 ]);
 
 export function Router() {
-   return <RouterProvider router={router} />;
+   return (
+      <RouterProvider
+         router={router}
+         fallbackElement={
+            <Center h='50vh'>
+               <Loader />
+            </Center>
+         }
+      />
+   );
 }

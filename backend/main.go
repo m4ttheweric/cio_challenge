@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -17,7 +19,14 @@ func main() {
 	db.Ping()
 
 	r := newRouter(db)
-	r.Run()
+
+	// Support PORT from environment with default 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Starting server on :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
 
 // Notification model for API responses
@@ -36,7 +45,8 @@ func newRouter(db *sqlx.DB) *gin.Engine {
 	r.SetTrustedProxies(nil) // Hide trusted proxies warning
 	// CORS: allow frontend running on localhost:5173
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://localhost:5173"},
+		// allow netlify too
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:4173", "https://matts-cio-challenge.netlify.app"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -81,7 +91,11 @@ func newRouter(db *sqlx.DB) *gin.Engine {
 		auth.GET("/notifications", func(c *gin.Context) {
 			userID := c.GetString("user_id")
 			// get preferences
-			p, _ := getPreferences(db, userID)
+			p, err := getPreferences(db, userID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
+				return
+			}
 			// Build allowed types list
 			types := make([]string, 0, 3)
 			if p.AllowEmail {
@@ -175,7 +189,11 @@ func newRouter(db *sqlx.DB) *gin.Engine {
 				return
 			}
 			// return updated prefs
-			p, _ := getPreferences(db, userID)
+			p, err := getPreferences(db, userID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
+				return
+			}
 			c.JSON(http.StatusOK, gin.H{"email": p.AllowEmail, "sms": p.AllowSMS, "push": p.AllowPush})
 		})
 	}

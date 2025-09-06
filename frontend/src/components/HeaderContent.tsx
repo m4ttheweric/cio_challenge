@@ -35,7 +35,7 @@ export const HeaderContent = () => {
 
    return (
       <Group mx='md' align='center' justify='space-between' h='100%'>
-         <Group gap="md">
+         <Group gap='md'>
             <Title order={3} fw={500}>
                Notifications
             </Title>
@@ -51,7 +51,11 @@ export const HeaderContent = () => {
             >
                Preferences
             </HeaderButton>
-            <HeaderButton rightSection={<LogOut size={12} />} onClick={signOut}>
+            <HeaderButton
+               disabled={location.href.includes('/login')}
+               rightSection={<LogOut size={12} />}
+               onClick={signOut}
+            >
                Sign Out
             </HeaderButton>
          </Group>
