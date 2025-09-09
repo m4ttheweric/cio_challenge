@@ -5,10 +5,10 @@ import { useEffect, useMemo } from 'react';
 import { useInterval } from '@mantine/hooks';
 
 export function ApiAvailabilityGate() {
-   const { data, isError, refetch } = useHealth();
+   const { data, isError, isPending, refetch } = useHealth();
 
    const unhealthy = useMemo(
-      () => isError || data?.status !== 'ok',
+      () => !isPending && (isError || data?.status !== 'ok'),
       [isError, data?.status]
    );
 
