@@ -39,9 +39,7 @@ export function ApiAvailabilityGate() {
                   <Text size='xs' c='gray'>
                      Waiting for API...
                   </Text>
-                  {unhealthy ? (
-                     <Loader color='gray' type='bars' size={12} />
-                  ) : null}
+                  <Loader color='gray' type='bars' size={12} />
                </Group>
             </Stack>
          </Alert>
