@@ -9,6 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import {
    GetNotificationsResponse,
+   HealthResponse,
    LoginRequest,
    LoginResponse,
    UpdatePreferencesResult,
@@ -66,6 +67,22 @@ export function useLogin() {
          setUserEmail(email);
          navigate('/'); // send them home after login
       }
+   });
+}
+
+// Health check – unauthenticated
+export function useHealth() {
+   return useQuery({
+      queryKey: ['healthz'],
+      queryFn: async () => {
+         const res = await fetch(`${BASE_URL}/healthz`);
+         if (!res.ok) throw new Error('API unavailable');
+         const data = (await res.json()) as HealthResponse;
+         if (data.status !== 'ok') throw new Error('API unhealthy');
+         return data;
+      },
+      staleTime: 15_000,
+      retry: 1
    });
 }
 

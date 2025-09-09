@@ -40,6 +40,7 @@ export function AppContextProvider({
 
    const signOut = useCallback(() => {
       setAuthToken(null);
+      setUserEmail(null);
    }, [setAuthToken]);
 
    useEffect(() => {

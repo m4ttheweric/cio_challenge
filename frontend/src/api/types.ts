@@ -46,3 +46,8 @@ export interface UserPreferences {
 export type UpdatePreferencesResult =
    | { status: 200; body: UserPreferences }
    | { status: 204; body: undefined };
+
+/** ----- GET /healthz ----- */
+export type HealthResponse = {
+   status: 'ok' | 'unhealthy';
+};
