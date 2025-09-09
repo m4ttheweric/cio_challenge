@@ -42,19 +42,6 @@ func initDB() *sqlx.DB {
 	return db
 }
 
-// // Execute the SQL file at the given path (not used by main, but kept handy)
-// func execSQLFile(db *sqlx.DB, sqlFilePath string) {
-// 	sqlBytes, err := os.ReadFile(sqlFilePath)
-// 	if err != nil {
-// 		fmt.Print("Failed to load file", sqlFilePath, err)
-// 		os.Exit(1)
-// 	}
-// 	if _, err := db.Exec(string(sqlBytes)); err != nil {
-// 		fmt.Print("Failed to execute file", sqlFilePath, err)
-// 		os.Exit(1)
-// 	}
-// }
-
 // createSchema creates the necessary tables for the API
 func createSchema(db *sqlx.DB) {
 	const schema = `

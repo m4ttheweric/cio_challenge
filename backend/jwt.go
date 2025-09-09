@@ -43,15 +43,16 @@ func jwtMiddleware() gin.HandlerFunc {
 			return
 		}
 
-	// Parse the token with standard claims validation and small leeway
-	claims := jwt.MapClaims{}
+		// Parse the token with standard claims validation and small leeway
+		claims := jwt.MapClaims{}
+
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, http.ErrAbortHandler
 			}
 
 			return getJWTSecret(), nil
-	}, jwt.WithLeeway(1*time.Minute))
+		}, jwt.WithLeeway(1*time.Minute))
 
 		// Check if the token is valid
 		if err != nil || !token.Valid {

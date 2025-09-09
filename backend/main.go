@@ -133,7 +133,7 @@ func newRouter(db *sqlx.DB) *gin.Engine {
 			}
 			c.JSON(http.StatusOK, gin.H{
 				"notifications": rows,
-				"preferences": p,
+				"preferences":   p,
 			})
 		})
 
