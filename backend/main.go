@@ -59,6 +59,11 @@ func newRouter(db *sqlx.DB) *gin.Engine {
 	// Setup JWT middleware that parses the token
 	r.Use(jwtMiddleware())
 
+	// Health check (no auth required)
+	r.GET("/healthz", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
 	// Login endpoint: takes email, looks up user, returns token with user_id
 	r.POST("/login", func(c *gin.Context) {
 		email := c.PostForm("email")
