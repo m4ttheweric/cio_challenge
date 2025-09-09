@@ -1,7 +1,8 @@
 import { useAppContext } from '@/AppContext';
 import { ColorSchemeToggle } from '@/components/ColorSchemeToggle';
 import { Preferences, PreferencesDataLoader } from '@/components/Preferences';
-import { Button, Group, Text, Title } from '@mantine/core';
+import { Badge, Button, Group, Text, Title } from '@mantine/core';
+import { useHealth } from '@/api/hooks';
 import { modals } from '@mantine/modals';
 
 import { LogOut, Settings } from 'lucide-react';
@@ -15,6 +16,7 @@ const HeaderButton = Button.withProps({
 
 export const HeaderContent = () => {
    const { signOut, userEmail } = useAppContext();
+   const { data: health, isError: healthError } = useHealth();
 
    const handlePreferencesClick = useCallback(() => {
       modals.open({
@@ -39,6 +41,22 @@ export const HeaderContent = () => {
             <Title order={3} fw={500}>
                Notifications
             </Title>
+            <Badge
+               variant='light'
+               color={
+                  healthError
+                     ? 'red'
+                     : health?.status === 'ok'
+                       ? 'green'
+                       : 'gray'
+               }
+            >
+               {healthError
+                  ? 'API: error'
+                  : health?.status === 'ok'
+                    ? 'API: ok'
+                    : 'API: ...'}
+            </Badge>
             <ColorSchemeToggle />
          </Group>
          <Group>
